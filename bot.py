@@ -76,6 +76,45 @@ def parse_odds(odds_data):
     return pd.DataFrame(rows)  # On convertit la liste de dicts en DataFrame pandas
 
 
+# Application de la formule du surebet pour détecter les opportunités d'arbitrage
+def detect_surebet(df):
+    
+    opportunities = []
+
+    for match_name, group in df.groupby("match"):  # On regroupe les lignes par match
+        best_home = group["home_odds"].max()       # Meilleure cote domicile
+        best_draw = group["draw_odds"].max()       # Meilleure cote nul
+        best_away = group["away_odds"].max()       # Meilleure cote extérieur
+
+        # Formule mathématique du surebet :
+        margin = (1/best_home) + (1/best_draw) + (1/best_away)
+
+        if margin < 1:
+            opportunities.append({
+                "match": match_name,
+                "margin": round(margin, 4),
+                "profit": round((1 - margin) * 100, 2),  # Profit en %
+                "best_home": best_home,
+                "best_draw": best_draw,
+                "best_away": best_away,
+            })
+
+    return opportunities
+
+
+
+odds_data = get_odds("soccer_france_ligue_one")
+df = parse_odds(odds_data)
+opportunities = detect_surebet(df)
+
+if opportunities:
+    for o in opportunities:
+        print(o)
+else:
+    print("Aucun surebet détecté")
+
+
+
 # Affiche la liste des bookmakers avec leurs clés
 # J'en ai eu besoin pour savoir quelles clés utiliser dans la fonction parse_odds() 
 # Egalement pour vérifier auxquels j'ai accès dans la liste depuis la France
@@ -93,9 +132,3 @@ def get_available_bookmakers():
     print("Bookmakers disponibles sur l'API :")
     for key, title in sorted(bookmakers):
         print(f"{title} → clé : {key}")
-
-
-
-odds_data = get_odds("soccer_france_ligue_one")
-df = parse_odds(odds_data)
-print(df.to_string())
