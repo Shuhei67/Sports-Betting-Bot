@@ -20,7 +20,8 @@ SPORTS = [
     "boxing_boxing",
     "icehockey_nhl",
 ]
-BOOKMAKERS = ["betclic_fr", "winamax_fr", "pmu_fr", "unibet_fr", "betfair_ex_eu", "parionssport_fr", "bwin_fr", "netbet_fr"]
+BOOKMAKERS = ["betclic_fr", "winamax_fr", "pmu_fr", "unibet_fr", "betfair_ex_eu", "williamhill", "sport888"]
+
 
 
 # Récupère les cotes en format brut (JSON) pour être traité plus tard
@@ -73,6 +74,26 @@ def parse_odds(odds_data):
                 })
 
     return pd.DataFrame(rows)  # On convertit la liste de dicts en DataFrame pandas
+
+
+# Affiche la liste des bookmakers avec leurs clés
+# J'en ai eu besoin pour savoir quelles clés utiliser dans la fonction parse_odds() 
+# Egalement pour vérifier auxquels j'ai accès dans la liste depuis la France
+# La fonction ne sert plus une fois le bot configuré
+# Mais pratique de la garder pour l'avenir
+def get_available_bookmakers():
+    bookmakers = set()
+    
+    for sport in SPORTS:
+        odds_data = get_odds(sport)
+        for match in odds_data:
+            for bookmaker in match["bookmakers"]:
+                bookmakers.add((bookmaker["key"], bookmaker["title"]))
+    
+    print("Bookmakers disponibles sur l'API :")
+    for key, title in sorted(bookmakers):
+        print(f"{title} → clé : {key}")
+
 
 
 odds_data = get_odds("soccer_france_ligue_one")
