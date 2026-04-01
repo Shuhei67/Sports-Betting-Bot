@@ -24,6 +24,26 @@ BOOKMAKERS = ["betclic_fr", "winamax_fr", "pmu_fr", "unibet_fr", "betfair_ex_eu"
 
 
 
+# Vérifie le nombre de requêtes API restantes avant de lancer le bot
+# Return True si il reste des crédits
+def check_credits():
+
+    url = f"{BASE_URL}/sports"
+    params = {"apiKey": API_KEY}
+    response = requests.get(url, params = params)
+    remaining = int(response.headers.get("x-requests-remaining"))
+    
+    
+    if remaining > 0:
+        print(50 * "-")
+        print(f"Requêtes API restantes : {remaining}")
+        print(50 * "-")
+        return True
+    else:
+        print("Plus de crédit API disponible, arrêt du bot.")
+        return False
+
+
 # Récupère les cotes en format brut (JSON) pour être traité plus tard
 def get_odds(sport):
 
@@ -43,7 +63,7 @@ def get_odds(sport):
         return []  # Liste vide si erreur
 
 
-# Transforme les données brutes en DataFrame pandas pour analyse
+# Transforme les données brutes récupérer en DataFrame pandas pour "analyse"
 def parse_odds(odds_data):
 
     rows = []  
@@ -103,15 +123,25 @@ def detect_surebet(df):
 
 
 
-odds_data = get_odds("soccer_france_ligue_one")
-df = parse_odds(odds_data)
-opportunities = detect_surebet(df)
+if check_credits():
 
-if opportunities:
-    for o in opportunities:
-        print(o)
-else:
-    print("Aucun surebet détecté")
+    all_opportunities = []
+
+    for sport in SPORTS:  # On boucle sur tous les sports qu'on a choisi
+        odds_data = get_odds(sport)
+
+        if not odds_data:  # Si pour un sport on a pas de données pas grave on continue
+            continue       # plutot que de faire planter le script entier
+        
+        df = parse_odds(odds_data)
+        opportunities = detect_surebet(df)
+        all_opportunities.extend(opportunities)
+
+    if all_opportunities:
+        for o in all_opportunities:
+            print(o)
+    else:
+        print("Aucun surebet détecté")
 
 
 
