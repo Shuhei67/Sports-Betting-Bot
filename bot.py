@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 import requests
 import pandas as pd
+import csv
+from datetime import datetime
 
 
 
@@ -125,6 +127,7 @@ def detect_surebet(df):
                 "match": match_name,
                 "margin": round(margin, 4),
                 "profit": round((1 - margin) * 100, 2),  # Profit en %
+                "best_home": best_home,
                 "best_home_book": best_home_row["bookmaker"],  # Bookmaker qui propose cette cote
                 "best_draw": best_draw,
                 "best_draw_book": best_draw_row["bookmaker"],
@@ -170,6 +173,29 @@ def format_surebet_message(opportunity):
     return message
 
 
+# Fonction qui va sauvegarder les opportunités dans un fichier CSV pour avoir un historique
+def save_opportunity(opportunity):
+    
+    filename = "surebets.csv"
+    
+    opportunity["detected_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    try:
+        with open(filename, "r"):
+            write_header = False
+    except FileNotFoundError:
+        write_header = True
+    
+    # On ouvre le fichier en mode append "a" pour ne pas écraser les données existantes
+    with open(filename, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=opportunity.keys()) # Va créer un dictionnaire avec les clés du dico "opportunity"
+        if write_header:
+            writer.writeheader()  # On écrit l'entête seulement si nouveau fichier
+        writer.writerow(opportunity)  # On écrit juste la ligne si fichier existe
+    
+    print(f"Opportunité sauvegardée dans {filename}")
+
+
 
 if check_credits():
 
@@ -188,13 +214,14 @@ if check_credits():
     if all_opportunities:
         for o in all_opportunities:
             send_telegram(format_surebet_message(o))
+            save_opportunity(o)
     else:
         print("Aucun surebet détecté")
 
 
 
 '''
-Avec ça on peut tester l'envoi du message Telegram même sans surebet :
+Avec ça on peut tester l'envoi du message Telegram et l'enregistrement sans surebet :
 
 fake = {
     "match": "PSG vs Marseille",
@@ -207,6 +234,7 @@ fake = {
     "best_away_book": "PMU (FR)",
 }
 send_telegram(format_surebet_message(fake))
+save_opportunity(fake)
 '''
 
 '''
