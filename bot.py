@@ -11,11 +11,16 @@ BASE_URL = "https://api.the-odds-api.com/v4"
 
 SPORTS = [
     "soccer_epl",
-    "soccer_ligue_1",
+    "soccer_france_ligue_one",
+    "soccer_france_ligue_two",
+    "soccer_germany_bundesliga",
+    "soccer_spain_la_liga",
+    "soccer_italy_serie_a",
     "basketball_nba",
-    "tennis_atp",
+    "boxing_boxing",
+    "icehockey_nhl",
 ]
-BOOKMAKERS = ["betclic_fr", "winamax_fr", "pmu_fr", "unibet_fr"]
+BOOKMAKERS = ["betclic_fr", "winamax_fr", "pmu_fr", "unibet_fr", "betfair_ex_eu", "parionssport_fr", "bwin_fr", "netbet_fr"]
 
 
 # Récupère les cotes en format brut (JSON) pour être traité plus tard
@@ -70,6 +75,6 @@ def parse_odds(odds_data):
     return pd.DataFrame(rows)  # On convertit la liste de dicts en DataFrame pandas
 
 
-odds_data = get_odds("soccer_epl")
+odds_data = get_odds("soccer_france_ligue_one")
 df = parse_odds(odds_data)
 print(df.to_string())
