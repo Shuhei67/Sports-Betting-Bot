@@ -187,7 +187,7 @@ if check_credits():
 
     if all_opportunities:
         for o in all_opportunities:
-            print(o)
+            send_telegram(format_surebet_message(o))
     else:
         print("Aucun surebet détecté")
 
